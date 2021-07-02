@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        public: true
+        autowire: true
+        autoconfigure: true
+
+    PoP\API\Schema\FieldQueryConvertorInterface:
+        class: \PoP\SiteBuilderAPI\Schema\FieldQueryConvertor
+
+    PoP\SiteBuilderAPI\Hooks\:
+        resource: '../src/Hooks/*'
