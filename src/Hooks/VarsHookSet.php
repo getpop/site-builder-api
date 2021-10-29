@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace PoP\SiteBuilderAPI\Hooks;
 
+use PoP\API\Response\Schemes as APISchemes;
+use PoP\ComponentModel\StratumManagerFactory;
 use PoP\ConfigurationComponentModel\Constants\Stratum;
 use PoP\Hooks\AbstractHookSet;
-use PoP\ComponentModel\StratumManagerFactory;
-use PoP\API\Response\Schemes as APISchemes;
 
 class VarsHookSet extends AbstractHookSet
 {
     protected function init(): void
     {
         // Execute early, since others (eg: SPA) will be based on these updated values
-        $this->hooksAPI->addAction(
+        $this->getHooksAPI()->addAction(
             'ApplicationState:addVars',
             array($this, 'addVars'),
             5,
