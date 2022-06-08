@@ -2,22 +2,24 @@
 
 declare(strict_types=1);
 
-namespace PoP\SiteBuilderAPI\ModuleProcessors;
+namespace PoP\SiteBuilderAPI\ComponentProcessors;
 
+use PoP\ComponentModel\Component\Component;
 use PoPAPI\API\Schema\QueryInputs;
 use PoP\ComponentModel\Constants\DataOutputItems;
+use PoP\ComponentModel\GraphQLEngine\Model\ComponentModelSpec\ComponentFieldInterface;
 use PoP\ComponentModel\Misc\GeneralUtils;
 use PoP\FieldQuery\QuerySyntax;
 use PoP\SiteBuilderAPI\Helpers\APIUtils;
 
-trait AddAPIQueryToSourcesModuleProcessorTrait
+trait AddAPIQueryToSourcesComponentProcessorTrait
 {
-    public function addAPIQueryToSources(array $sources, array $module, array &$props): array
+    public function addAPIQueryToSources(array $sources, Component $component, array &$props): array
     {
         if (!$sources) {
             return [];
         }
-        $flattened_datafields = $this->getDatasetmoduletreeSectionFlattenedDataFields($module, $props);
+        $flattened_datafields = $this->getDatasetcomponentTreeSectionFlattenedDataFields($component, $props);
         $apiFields = [];
         $heap = [
             '' => [&$flattened_datafields],
@@ -33,7 +35,13 @@ trait AddAPIQueryToSourcesModuleProcessorTrait
                 // If not, and we're inside a subcomponent, there is no need to add the subcomponent's key alone, since the engine already includes this field as a data-field (so it was added in the previous iteration)
                 if ($key_datafields = $key_data['data-fields']) {
                     // Make sure the fields are not repeated, and no empty values
-                    $apiFields[] = $key . implode(QuerySyntax::SYMBOL_FIELDPROPERTIES_SEPARATOR, array_values(array_unique(array_filter($key_datafields))));
+                    $apiFields[] = $key . implode(
+                        QuerySyntax::SYMBOL_FIELDPROPERTIES_SEPARATOR,
+                        array_map(
+                            fn (ComponentFieldInterface $componentField) => $componentField->asFieldOutputQueryString(),
+                            array_values(array_unique(array_filter($key_datafields)))
+                        )
+                    );
                 }
 
                 // If there are subcomponents, add them into the heap
@@ -60,7 +68,7 @@ trait AddAPIQueryToSourcesModuleProcessorTrait
                             APIUtils::getEndpoint(
                                 $source,
                                 [
-                                    DataOutputItems::MODULE_DATA,
+                                    DataOutputItems::COMPONENT_DATA,
                                     DataOutputItems::DATABASES,
                                     DataOutputItems::META,
                                 ]
